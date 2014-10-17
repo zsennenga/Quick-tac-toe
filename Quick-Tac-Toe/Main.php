@@ -42,7 +42,7 @@ while($input !== '-1')	{
 			}
 			catch (Exception $e)	{
 				echo "There's already a piece in that position. Try again.";
-				return
+				$gameState->printState();
 			}
 			break;
 		case BOT_ID:
