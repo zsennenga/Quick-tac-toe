@@ -6,8 +6,7 @@ require_once 'GameState.php';
 
 //Terrible things will happen outside the CLI
 if (php_sapi_name() !== 'cli')	{
-	echo "Please run this from the command line.";
-	echo USAGE_STRING;
+	echo CLI_CHASTISE;
 	return 0;
 }
 
@@ -24,46 +23,62 @@ $bot = new DoozyBot($first, $playbook, $playbook2);
 
 //Display a blank board and user input instructions
 echo INPUT_INSTRUCTIONS;
-$gameState->printState();
+if (!$first)	{
+	$gameState->printState();
+}
 
 $input = null;
 
 //-1 is always an invalid move so we use that as a guard value for "exit the program"
-while($input !== '-1')	{
+while($input !== -1)	{
 	
 	$nextPiece = $gameState->getNextPlayer();
 	
 	switch($nextPiece)	{
 		case PLAYER_ID:
 			$input = parseCliInput();
-			//If we get -1 for the input we simply do nothing
+			if ($input === -1)	{
+				break;
+			}
 			try {
 				$gameState->makeMove($input);
 			}
 			catch (Exception $e)	{
-				echo "There's already a piece in that position. Try again.";
+				echo CHASTISE_MESSAGE;
 				$gameState->printState();
 			}
 			break;
 		case BOT_ID:
 			$botMove = $bot->getMove($input, $gameState);
 			$gameState->makeMove($botMove);
+			echo BOT_MOVE;
 			$gameState->printState();
 			break;
 		default:
 			//This gets called when there is no need for another move
 			//Usually because the game is over
+			//"Usually" here meaning, I have no idea how this'd get called otherwise.
 			$winner = $gameState->getWinner();
-			$gameState->printState();
-			//TODO State the winner somehow
-			echo "Hey the game is over!\n\n\n\n\n\n\n\n\n";
+			switch($winner)	{
+				case BOT_ID:
+					echo BOT_WIN;
+					break;
+				case PLAYER_ID:
+					echo PLAYER_WIN;
+					break;
+				default:
+					echo DRAW_WIN;
+					break;
+			}
 			$gameState->reset();
 			$first = $gameState->getNextPlayer() === BOT_ID;
 			$bot->reset($first);
+			$gameState->printState();
+			echo NEW_GAME;
 			break;
 	}
 	
 }
 
-echo "Thanks for playing!";
+echo THANKS_MESSAGE;
 return 0;

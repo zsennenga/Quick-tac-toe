@@ -48,14 +48,25 @@ class DoozyBot	{
 	 */
 	private function getMoveFirst($lastPlayerMove)	{
 		switch(count($this->myMoves))	{
+			//Get the center.
 			case 0:
 				return 4;
+			//Get 2 in a row
 			case 1:
 				return $this->findVictoryMove();
+			//Attempt to execute our victory strategy
 			case 2:
 				return $this->tryToWin();
+				
+			//If we can't win, block and go for a draw
+			//Most of the time we can go random and be fine
+			//Some edge cases require you to block, however
 			default:
-				return $this->randomMove();
+				$move = $this->findBlockMove();
+				if ($move === -1)	{
+					$move = $this->randomMove();
+				}
+				return $move;
 		}
 	}
 	
@@ -66,6 +77,7 @@ class DoozyBot	{
 	 */
 	private function getMoveSecond($lastPlayerMove)	{
 		switch(count($this->myMoves))	{
+			//Take the center if possible, if not, the first corner.
 			case 0:
 				if ($lastPlayerMove != 4)	{
 					return 4;
@@ -73,19 +85,26 @@ class DoozyBot	{
 				else 	{
 					return 0;
 				}
-			case 1:
+			//Try to block the opponent if they are close to victory.
+			//If that is not necessary, try to win.
+			default:
+				if ($this->winMove !== -1)	{
+					return $this->tryToWin();
+				}
 				$move = $this->findBlockMove();
 				if ($move === -1)	{
 					$move = $this->findVictoryMove();
 				}
 				return $move;
+			/*//If we calculated a series of winning moves last turn, execute.
+			//Otherwise, go for a draw.
 			case 2:
 				if ($this->winMove !== -1)	{
 					return $this->tryToWin();
 				}
-				return $this->randomMove();
+				return $this->findBlockMove();
 			default:
-				return $this->randomMove();
+				return $this->randomMove();*/
 		}
 	}
 	
@@ -94,23 +113,22 @@ class DoozyBot	{
 	 * @return integer 0-8
 	 */
 	private function findBlockMove()	{
-		$first = $this->oppMoves[0];
-		$second = $this->oppMoves[1];
-		$key = (string) $first . (string) $second;
+		$key = (string) $this->oppMoves[0] . (string) $this->oppMoves[1];
+		//Find the space we need to block in order to stop the opponent from winning
 		$blockMove = $this->getVictorySpace($key);
 		
+		//If we don't need to block for some reason, try to win instead.
 		if ($blockMove === -1)	{
-			return $this->findVictoryMove();
+			return $blockMove;
 		}
 		
-		//Check if we're already blocking them.
+		//If we're already blocking them, we can go for a win instead.
 		if (in_array($blockMove,$this->myMoves))	{
 			return $this->findVictoryMove();
 		}
 		
 		//Check if, by blocking, we are in a position to win
-		$myMove = $this->myMoves[0];
-		$key = (string) $myMove . (string) $blockMove;
+		$key = (string) $this->myMoves[0] . (string) $blockMove;
 		$possibleVictorySpace = $this->getVictorySpace($key);
 		if ($possibleVictorySpace !== -1)	{
 			$this->winMove = $possibleVictorySpace;
@@ -139,8 +157,8 @@ class DoozyBot	{
 		$myMove = $this->myMoves[0];
 		$victoryPairs = $this->victoryPairs[$myMove];
 		
-		//For each pair of winning moves, given our first move, find the one that is not blocked.
-		//If no win is possible, return a random move.
+		//Given our first move, find the first pair of adjacent spaces that are not blocked.
+		//If no win is possible, return begin forcing a draw.
 		foreach($victoryPairs as $pair)	{
 			foreach($pair as $space)	{
 				if (in_array($space, $this->oppMoves))	{
@@ -164,21 +182,23 @@ class DoozyBot	{
 		}
 		
 		//We got blocked!
-		return $this->randomMove();
+		return $this->findBlockMove();
 	}
 	
 	/**
-	 * Only called when a draw is guarenteed.
+	 * Only called when a draw is guarenteed, or there's nothing else we can do.
 	 * 
 	 * rand is not very random, but at the point this is
 	 * called, i'm fine with that. We're just trying to end the game.
 	 * @return integer 0-8
 	 */
 	private function randomMove()	{
+		//Find the set difference of the array of integers 0-8 and the moves already taken.
+		//Select randomly from that set.
 		$values = range(0,8);
 		$taken = array_merge($this->myMoves, $this->oppMoves);
-		$diff = array_diff($values, $taken);
-		$rand = rand(0, count($diff));
+		$diff = array_values(array_diff($values, $taken));
+		$rand = rand(0, count($diff)-1);
 		return $diff[$rand];
 	}
 	

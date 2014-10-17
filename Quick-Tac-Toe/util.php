@@ -4,14 +4,25 @@
  * 
  * Holds a few strings/functions I can't really work into a class or need to refer to in multiple places.
  * 
+ * At the start of this endeavour this had more purpose than just holding a bunch of defines, but it sorta
+ * withered away as I refined the design. I'd rename it but there isn't too much reason.
+ * 
  */
 
 //A few static strings that I need to print or otherwise refer to in a variety of places
 define("PLAYER_ID", 0);
 define("BOT_ID", 1);
 
-define("USAGE_STRING", "Call using ./Main.php\n");
+define("CLI_CHASTISE", "Please run this from the command line.\nCall using ./Main.php\n");
 define("INPUT_INSTRUCTIONS", "Valid moves require a row and a column in the format 'c3', for example. Enter 'exit' to quit.\n");
+define("CHASTISE_MESSAGE","There's already a piece in that position. Try again.\n");
+define("BOT_MOVE", "Doozy Bot made a move!\n");
+define("NEW_GAME", "New Game!\n\n\n\n\n\n\n\n\n");
+define("THANKS_MESSAGE", "Thanks for playing!");
+
+define("DRAW_WIN", "A draw! Unsurprising!\n");
+define("PLAYER_WIN", "I... don't know how this happened. Player wins?\n");
+define("BOT_WIN", "Beep beep boop. Bot win.\n");
 
 
 /**
@@ -33,7 +44,7 @@ function parseCliInput()	{
 		//clean up the string a bit
 		$line = trim(strtolower($line));
 		
-		if ($line === 'exit')	{
+		if ($line === "exit")	{
 			return -1;
 		}
 		

@@ -121,7 +121,7 @@ class GameState	{
 		echo "\t1\t2\t3\n";
 		echo "a\t" . implode("\t", $part1) . "\n";
 		echo "b\t" . implode("\t", $part2) . "\n";
-		echo "c\t" . implode("\t", $part3) . "\n";
+		echo "c\t" . implode("\t", $part3) . "\n\n";
 	}
 	
 	/**
