@@ -1,6 +1,8 @@
 Quick-tac-toe
 =============
 
+Usage: ./Main.php
+
 This is a program that allows you to play tic-tac-toe vs a "perfect" bot. It will never lose, though often draw.
 
 Since the problem space of tic-tac-toe is so small, the AI makes use of a "playbook" which allows it to quickly figure out which spaces it needs to move to in order to block and so on. While calculating these adjacencies at runtime isn't particularly computationally expensive, it simplifies a number of sections of the code. 
