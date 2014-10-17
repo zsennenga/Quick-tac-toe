@@ -3,10 +3,14 @@ class DoozyBot	{
 	
 	private $myMoves;
 	private $oppMoves;
+	//Did I go first?
 	private $first;
 	
+	//These hold data about groups of spaces
 	private $victoryPairs;
+	private $victorySpaces;
 	
+	//This is used to track where we expect to be able to win next turn
 	private $winMove;
 	
 	function DoozyBot($first, $playbook, $playbook2)	{
@@ -132,18 +136,8 @@ class DoozyBot	{
 	 * @return unknown|number
 	 */
 	private function setupWin()	{
-		//First check if we lucked into setting up a fork.
-		//This is unlikely, but fast to check
-		$keys = $this->buildKeys($this->myMoves);
-		$vSpace = $this->getVictorySpace($keys, $this->oppMoves);
-		if ($vSpace !== -1)	{
-			return $vSpace;
-		}
-		//Otherwise iterate down all our spaces and look for a win we can setup
+		//Iterate through all our spaces and look for a win we can setup
 		foreach($this->myMoves as $move)	{
-			if ($move === -1)	{
-				echo "huh?";
-			}
 			$victoryPairs = $this->victoryPairs[$move];
 			foreach($victoryPairs as $pair)	{
 				foreach($pair as $space)	{

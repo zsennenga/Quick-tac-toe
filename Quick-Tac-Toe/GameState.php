@@ -165,7 +165,4 @@ class GameState	{
 		return $this->winner;
 	}
 	
-	
-	
-	
 }

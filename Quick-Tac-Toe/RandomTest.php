@@ -19,7 +19,7 @@ $bot = new DoozyBot($first, $playbook, $playbook2);
 $thisGame = array();
 $games = 0;
 $input = null;
-while($games < 10000)	{
+while($games < 100000)	{
 	
 	$nextPiece = $gameState->getNextPlayer();
 	
