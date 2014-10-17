@@ -43,10 +43,6 @@ class GameState	{
 	 */
 	public function makeMove($move)		{
 		
-		//Quick bounds check.
-		if ($move === -1)	{
-			return;
-		}
 		//CHEATER! The board already has a piece where you're trying to place yours.
 		if ($this->board[$move] !== -1)	{
 			throw new Exception("Cheater!");

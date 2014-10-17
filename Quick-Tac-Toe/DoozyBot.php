@@ -18,9 +18,13 @@ class DoozyBot	{
 	}
 	
 	/**
-	 * Top level function to get a move from the bot
+	 * The bot strategy is pretty simple;
+	 * 1. Win if you can
+	 * 2. Block if you can't win
+	 * 3. Setup a win next turn if you don't need to block
+	 * 4. Flail wildly if that isn't possible
 	 * 
-	 * This branches here depending on if you are the first player or not.
+	 * Turns 1 and 2 are pretty set-in-stone so those are handled seperately.
 	 * 
 	 * @param integer 0-8 $lastPlayerMove
 	 * @return integer 0-8
@@ -29,11 +33,33 @@ class DoozyBot	{
 		if ($lastPlayerMove !== null)	{
 			array_push($this->oppMoves, $lastPlayerMove);
 		}
-		if ($this->first)	{
-			$move = $this->getMoveFirst($lastPlayerMove);
-		}
-		else	{
-			$move = $this->getMoveSecond($lastPlayerMove);
+		switch(count($this->myMoves))	{
+			case 0:
+				if ($this->first || $lastPlayerMove !== 4)	{
+					$move = 4;
+				}
+				else {
+					$move = 0;
+				}
+				break;
+			case 1:
+				$move = $this->attemptBlock();
+				if ($move === -1)	{
+					$move = $this->setupWin();
+				}
+				break;
+			default:
+				$move = $this->doWin();
+				if ($move === -1)	{
+					$move = $this->attemptBlock();
+				}
+				if ($move === -1)	{
+					$move = $this->setupWin();
+				}
+				if ($move === -1)	{
+					$move = $this->randomMove();
+				}
+				break;
 		}
 		
 		array_push($this->myMoves, $move);
@@ -41,111 +67,96 @@ class DoozyBot	{
 	}
 	
 	/**
-	 * Move if the bot goes first. The bot is "aggressive" and tries to win rather than block.
-	 * 
-	 * @param unknown $lastPlayerMove
-	 * @return number
-	 */
-	private function getMoveFirst($lastPlayerMove)	{
-		switch(count($this->myMoves))	{
-			//Get the center.
-			case 0:
-				return 4;
-			//Get 2 in a row
-			case 1:
-				return $this->findVictoryMove();
-			//Attempt to execute our victory strategy
-			case 2:
-				return $this->tryToWin();
-				
-			//If we can't win, block and go for a draw
-			//Most of the time we can go random and be fine
-			//Some edge cases require you to block, however
-			default:
-				$move = $this->findBlockMove();
-				if ($move === -1)	{
-					$move = $this->randomMove();
-				}
-				return $move;
-		}
-	}
-	
-	/**
-	 * Move if the bot goes second. The bot blocks unless the human player doesn't try to win.
-	 * @param unknown $lastPlayerMove
-	 * @return number|unknown
-	 */
-	private function getMoveSecond($lastPlayerMove)	{
-		switch(count($this->myMoves))	{
-			//Take the center if possible, if not, the first corner.
-			case 0:
-				if ($lastPlayerMove != 4)	{
-					return 4;
-				}
-				else 	{
-					return 0;
-				}
-			//Try to block the opponent if they are close to victory.
-			//If that is not necessary, try to win.
-			default:
-				if ($this->winMove !== -1)	{
-					return $this->tryToWin();
-				}
-				$move = $this->findBlockMove();
-				if ($move === -1)	{
-					$move = $this->findVictoryMove();
-				}
-				return $move;
-			/*//If we calculated a series of winning moves last turn, execute.
-			//Otherwise, go for a draw.
-			case 2:
-				if ($this->winMove !== -1)	{
-					return $this->tryToWin();
-				}
-				return $this->findBlockMove();
-			default:
-				return $this->randomMove();*/
-		}
-	}
-	
-	/**
 	 * Tries to block the human player, if possible.
 	 * @return integer 0-8
 	 */
-	private function findBlockMove()	{
-		$key = (string) $this->oppMoves[0] . (string) $this->oppMoves[1];
-		//Find the space we need to block in order to stop the opponent from winning
-		$blockMove = $this->getVictorySpace($key);
-		
-		//If we don't need to block for some reason, try to win instead.
-		if ($blockMove === -1)	{
-			return $blockMove;
+	private function attemptBlock()	{
+		$keys = $this->buildKeys($this->oppMoves);
+		$vSpace = $this->getVictorySpace($keys, $this->myMoves);
+		if ($vSpace !== -1) {
+			$this->checkBlockWinSetup($vSpace);
 		}
-		
-		//If we're already blocking them, we can go for a win instead.
-		if (in_array($blockMove,$this->myMoves))	{
-			return $this->findVictoryMove();
-		}
-		
-		//Check if, by blocking, we are in a position to win
-		$key = (string) $this->myMoves[0] . (string) $blockMove;
-		$possibleVictorySpace = $this->getVictorySpace($key);
-		if ($possibleVictorySpace !== -1)	{
-			$this->winMove = $possibleVictorySpace;
-		}
-		return $blockMove;
+		return $vSpace;
 	}
 	
 	/**
-	 * Checks if, given a key created from the indexes of two other moves,
+	 * Check if blocking in the way we've chosen sets us up for a win.
+	 * 
+	 * @param integer 0-8 $vSpace
+	 */
+	private function checkBlockWinSetup($vSpace)	{
+		$tempArr = $this->myMoves;
+		array_push($tempArr, $vSpace);
+		$keys = $this->buildKeys($tempArr);
+		$newVSpace = $this->getVictorySpace($keys, $this->oppMoves);
+		if ($newVSpace !== -1)	{
+			$this->winMove = $newVSpace;
+		}
+	}
+	
+	/**
+	 * Checks if, given a set of keys created from the indexes of two other moves,
 	 * there is a third move which wins the game.
 	 * @param string $key
 	 * @return number
 	 */
-	private function getVictorySpace($key)	{
-		if (isset($this->victorySpaces[$key]))	{
-			return $this->victorySpaces[$key];
+	private function getVictorySpace($keys, $arr = array())	{
+		foreach ($keys as $key)	{
+			if (isset($this->victorySpaces[$key]))	{
+				if (!in_array($this->victorySpaces[$key], $arr))	{
+					return $this->victorySpaces[$key];
+				}
+			}
 		}
+		return -1;
+	}
+	
+	/**
+	 * Creates every combo of keys possible from the given array for use in getVictorySpace
+	 * @param array $arr
+	 */
+	private function buildKeys($arr)	{
+		$count =  count($arr);
+		$keys = array();
+		for ($i = 0; $i < $count; $i++)	{
+			for ($j = 0; $j < $count; $j++)	{
+				$key = $arr[$i] . $arr[$j];
+				array_push($keys, $key);
+			}
+		}
+		return $keys;
+	}
+	
+	/**
+	 * Setup a 2-in-a-row and force a block, or you win
+	 * @return unknown|number
+	 */
+	private function setupWin()	{
+		//First check if we lucked into setting up a fork.
+		//This is unlikely, but fast to check
+		$keys = $this->buildKeys($this->myMoves);
+		$vSpace = $this->getVictorySpace($keys, $this->oppMoves);
+		if ($vSpace !== -1)	{
+			return $vSpace;
+		}
+		//Otherwise iterate down all our spaces and look for a win we can setup
+		foreach($this->myMoves as $move)	{
+			if ($move === -1)	{
+				echo "huh?";
+			}
+			$victoryPairs = $this->victoryPairs[$move];
+			foreach($victoryPairs as $pair)	{
+				foreach($pair as $space)	{
+					if (in_array($space, $this->oppMoves))	{
+						continue 2;
+					}
+				}
+				$this->winMove = $pair[0];
+				return $pair[1];
+			}
+		}
+		
+		//If we just can't setup a win, return -1 and do a random move;
 		return -1;
 	}
 	
@@ -154,20 +165,12 @@ class DoozyBot	{
 	 * @return integer 0-8
 	 */
 	private function findVictoryMove()	{
-		$myMove = $this->myMoves[0];
-		$victoryPairs = $this->victoryPairs[$myMove];
+		$myMove = end($this->myMoves);
+		
 		
 		//Given our first move, find the first pair of adjacent spaces that are not blocked.
 		//If no win is possible, return begin forcing a draw.
-		foreach($victoryPairs as $pair)	{
-			foreach($pair as $space)	{
-				if (in_array($space, $this->oppMoves))	{
-					continue 2;
-				}
-			}
-			$this->winMove = $pair[0];
-			return $pair[1];
-		}
+		
 		return $this->randomMove();
 	}
 	/**
@@ -176,13 +179,14 @@ class DoozyBot	{
 	 * If it can't, it returns a random move, because a draw is guarenteed.
 	 * @return integer 0-8
 	 */
-	private function tryToWin()	{
-		if (!in_array($this->winMove, $this->oppMoves))	{
+	private function doWin()	{
+		if (!in_array($this->winMove, $this->oppMoves) && $this->winMove >= 0)	{
 			return $this->winMove;
 		}
 		
 		//We got blocked!
-		return $this->findBlockMove();
+		$this->winMove = -1;
+		return -1;
 	}
 	
 	/**
