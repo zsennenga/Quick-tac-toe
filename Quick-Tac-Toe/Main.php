@@ -73,8 +73,10 @@ while($input !== -1)	{
 			$gameState->reset();
 			$first = $gameState->getNextPlayer() === BOT_ID;
 			$bot->reset($first);
-			$gameState->printState();
 			echo NEW_GAME;
+			if (!$first)	{
+				$gameState->printState();
+			}
 			break;
 	}
 	

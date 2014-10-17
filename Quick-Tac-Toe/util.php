@@ -17,7 +17,7 @@ define("CLI_CHASTISE", "Please run this from the command line.\nCall using ./Mai
 define("INPUT_INSTRUCTIONS", "Valid moves require a row and a column in the format 'c3', for example. Enter 'exit' to quit.\n");
 define("CHASTISE_MESSAGE","There's already a piece in that position. Try again.\n");
 define("BOT_MOVE", "Doozy Bot made a move!\n");
-define("NEW_GAME", "New Game!\n\n\n\n\n\n\n\n\n");
+define("NEW_GAME", "New Game!\n\n\n");
 define("THANKS_MESSAGE", "Thanks for playing!");
 
 define("DRAW_WIN", "A draw! Unsurprising!\n");

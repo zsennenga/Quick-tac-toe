@@ -111,13 +111,25 @@ class GameState	{
 	 * A huge pain. Prints the board to the console. There is PROBABLY a better way to do this using ncurses or something.
 	 */
 	public function printState()	{
-		$part1 = array_slice($this->board, 0, 3);
-		$part2 = array_slice($this->board, 3, 3);
-		$part3 = array_slice($this->board, 6, 3);
+		$part1 = $this->prettyUp(array_slice($this->board, 0, 3));
+		$part2 = $this->prettyUp(array_slice($this->board, 3, 3));
+		$part3 = $this->prettyUp(array_slice($this->board, 6, 3));
 		echo "\t1\t2\t3\n";
-		echo "a\t" . implode("\t", $part1) . "\n";
-		echo "b\t" . implode("\t", $part2) . "\n";
-		echo "c\t" . implode("\t", $part3) . "\n\n";
+		echo "a\t" . $part1 . "\n";
+		echo "b\t" . $part2 . "\n";
+		echo "c\t" . $part3 . "\n\n";
+	}
+	/**
+	 * Replaces player ids with Xs and Os
+	 * @param unknown $array
+	 * @return unknown
+	 */
+	private function prettyUp($array)	{
+		$line = implode("\t", $array);
+		$line = str_replace("-1", " ", $line);
+		$line = str_replace("0", $this->pieces[0], $line);
+		$line = str_replace("1", $this->pieces[1], $line);
+		return $line;
 	}
 	
 	/**
