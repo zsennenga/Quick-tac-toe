@@ -77,9 +77,7 @@ class GameState	{
 
 		//We don't check for a win on 4 because it will never come up due to how the bot AI is written.
 		//Specifically, spot 4 is taken the bot's first turn if it hasn't already been taken, (so either turn 1 or 2) and this case 
-		//is caught by the first quick check
-		
-		//The or-ing is because it'll short circuit if it finds a win (probably). 
+		//is caught by the first quick check 
 		
 		switch($lastMove)	{
 			case 0:
