@@ -1,5 +1,12 @@
 <?php
-
+/**
+ * This holds the state of the game, including current player, and position of the pieces.
+ * 
+ * It manages the rules of the game, checks for the game end state, and can print the board.
+ * 
+ * @author Zachary
+ *
+ */
 class GameState	{
 	
 	private $board;
@@ -7,12 +14,14 @@ class GameState	{
 	private $turnNumber;
 	private $winner;
 	private $pieces;
+	private $victoryPairs;
 	
 	/**
 	 * Builds the initial gamestate. The pieces are the only values that don't change between games.
 	 */
-	function GameState()	{
+	function GameState($victoryPairs)	{
 		$this->pieces = array("X", "O");
+		$this->victoryPairs = $victoryPairs;
 		$this->reset();
 	}
 	
@@ -43,7 +52,7 @@ class GameState	{
 			throw new Exception("Cheater!");
 		}
 		
-		$this->board[$move] = $currentPlayer;
+		$this->board[$move] = $this->currentPlayer;
 		
 		$this->turnNumber++;
 		$this->checkForWinner($move);
@@ -74,48 +83,12 @@ class GameState	{
 			return;
 		}
 		
-
-		//We don't check for a win on 4 because it will never come up due to how the bot AI is written.
-		//Specifically, spot 4 is taken the bot's first turn if it hasn't already been taken, (so either turn 1 or 2) and this case 
-		//is caught by the first quick check 
-		
-		switch($lastMove)	{
-			case 0:
-				$this->checkWin(1,2);
-				$this->checkWin(4,8);
-				$this->checkWin(3,6);
-				break;
-			case 1:
-				$this->checkWin(0,2);
-				$this->checkWin(4,7);
-				break;
-			case 2:
-				$this->checkWin(1,0);
-				$this->checkWin(4,6);
-				$this->checkWin(5,8);
-				break;
-			case 3:
-				$this->checkWin(0,6);
-				$this->checkWin(4,5);
-				break;
-			case 5:
-				$this->checkWin(2,8);
-				$this->checkWin(3,4);
-				break;
-			case 6:
-				$this->checkWin(7,8);
-				$this->checkWin(0,3);
-				$this->checkWin(2,4);
-				break;
-			case 7:
-				$this->checkWin(1,4);
-				$this->checkWin(6,8);
-				break;
-			case 8:
-				$this->checkWin(2,5);
-				$this->checkWin(6,7);
-				$this->checkWin(4,8);
-				break;
+		//victoryPairs contains, for each given space on the board, the set of pairs of spaces 
+		//that need to match to win the game.
+		$victoryPairs = $this->victoryPairs[$lastMove];
+		foreach($victoryPairs as $pair)	{
+			if($this->checkWin($pair))
+				return;
 		}
 		
 		return;
@@ -128,9 +101,9 @@ class GameState	{
 	 * @param integer 0-8 $second
 	 * @return boolean
 	 */
-	private function checkWin($first, $second)	{
-		$first = $this->board[$first];
-		$second = $this->board[$second];
+	private function checkWin($positions)	{
+		$first = $this->board[$positions[0]];
+		$second = $this->board[$positions[1]];
 		if ($first === $second && $second === $this->currentPlayer)	{
 			$this->winner = $this->currentPlayer;
 			return true;
@@ -142,15 +115,21 @@ class GameState	{
 	 * A huge pain. Prints the board to the console. There is PROBABLY a better way to do this using ncurses or something.
 	 */
 	public function printState()	{
-		//TODO =(
+		$part1 = array_slice($this->board, 0, 3);
+		$part2 = array_slice($this->board, 3, 3);
+		$part3 = array_slice($this->board, 6, 3);
+		echo "\t1\t2\t3\n";
+		echo "a\t" . implode("\t", $part1) . "\n";
+		echo "b\t" . implode("\t", $part2) . "\n";
+		echo "c\t" . implode("\t", $part3) . "\n";
 	}
 	
 	/**
 	 * Reset the gameState to what it would be in a new game.
 	 */
 	public function reset()	{
-		$this->board = array_fill(0, 8, -1);
-		$this->currentPlayer = $this->chooseRandomStarter();
+		$this->board = array_fill(0, 9, -1);
+		$this->currentPlayer = $this->chooseStarter();
 		$this->winner = null;
 		$this->turnNumber = 0;
 	}
@@ -164,10 +143,10 @@ class GameState	{
 	 * @return 0, 1, or null 
 	 */
 	public function getNextPlayer()	{
-		if ($winner === null)	{
-			return $this->$currentPlayer;
+		if ($this->winner === null)	{
+			return $this->currentPlayer;
 		}
-		return null;
+		return -1;
 	}
 	
 	/**
@@ -175,7 +154,7 @@ class GameState	{
 	 * @return integer
 	 */
 	public function getWinner()	{
-		return $winner;
+		return $this->winner;
 	}
 	
 	

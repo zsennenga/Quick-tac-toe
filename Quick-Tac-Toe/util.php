@@ -10,8 +10,8 @@
 define("PLAYER_ID", 0);
 define("BOT_ID", 1);
 
-define("USAGE_STRING", "");
-define("INPUT_INSTRUCTIONS", "");
+define("USAGE_STRING", "Call using ./Main.php\n");
+define("INPUT_INSTRUCTIONS", "Valid moves require a row and a column in the format 'c3', for example. Enter 'exit' to quit.\n");
 
 
 /**
@@ -39,12 +39,13 @@ function parseCliInput()	{
 		
 		//check if our line matches our expected pattern
 		if (strlen($line) === 2 && preg_match("/[a-c][1-3]/", $line) === 1)	{
-			$str = explode("", $line);
+			$str = str_split($line);
 			//Fancy math! We're translating matrix positions to a regular array
 			//aX is 0-2, bX is 3-5, cX is 6-8.
 			return 3*(ord($str[0])-97)+($str[1]-1);
 		}
-			
+
+		echo INPUT_INSTRUCTIONS;
 		$line = fgets(STDIN);
 	}
 }
