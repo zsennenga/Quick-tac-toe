@@ -27,20 +27,26 @@ while($input !== '-1')	{
 	$nextPiece = $gameState->getNextPlayer();
 	
 	switch($nextPiece)	{
-		case PLAYER_PIECE:
+		case PLAYER_ID:
 			$input = parseCliInput();
 			//If we get -1 for the input we simply do nothing
-			$gameState->makeMove($input, PLAYER_PIECE);
+			try{
+				$gameState->makeMove($input);
+			}
+			catch (Exception $e)	{
+				//TODO print chastising message
+			}
 			break;
-		case BOT_PIECE:
+		case BOT_ID:
 			$botMove = $bot->getMove($playerMove, $gameState);
-			$gameState->makeMove($botMove, BOT_PIECE);
+			$gameState->makeMove($botMove);
 			break;
 		default:
 			//This gets called when there is no need for another move
 			//Usually because the game is over
 			$winner = $gameState->getWinner();
 			$gameState->reset();
+			$bot->reset();
 			//TODO use winner to print some sort of message
 			break;
 	}

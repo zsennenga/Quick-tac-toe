@@ -7,8 +7,9 @@
  */
 
 //A few static strings that I need to print or otherwise refer to in a variety of places
-define("PLAYER_PIECE", X);
-define("BOT_PIECE", O);
+define("PLAYER_ID", 0);
+define("BOT_ID", 1);
+
 define("USAGE_STRING", "");
 define("INPUT_INSTRUCTIONS", "");
 

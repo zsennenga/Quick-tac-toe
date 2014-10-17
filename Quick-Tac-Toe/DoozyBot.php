@@ -1,6 +1,8 @@
 <?php
 class DoozyBot	{
 	
+	private
+	
 	function DoozyBot()	{
 	
 	}
@@ -10,5 +12,8 @@ class DoozyBot	{
 	}
 	
 	
-	
+	public function reset()	{
+		
+	}
+
 }
