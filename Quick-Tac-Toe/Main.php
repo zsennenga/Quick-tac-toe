@@ -16,10 +16,12 @@ $playbook = json_decode(file_get_contents("victoryPairs.json"), true);
 //Playbook2 contains, for each pair of adjacent spaces on the board, the third space
 //that is necessary to win the game
 $playbook2 = json_decode(file_get_contents("victorySpaces.json"), true);
+//This contains a list of forks so that the AI avoid using them to win
+$forks = json_decode(file_get_contents("forks.json"), true);
 //Initialize Classes
 $gameState = new GameState($playbook);
 $first = $gameState->getNextPlayer() === BOT_ID;
-$bot = new DoozyBot($first, $playbook, $playbook2);
+$bot = new DoozyBot($first, $playbook, $playbook2, $forks);
 
 //Display a blank board and user input instructions
 echo INPUT_INSTRUCTIONS;

@@ -9,15 +9,17 @@ class DoozyBot	{
 	//These hold data about groups of spaces
 	private $victoryPairs;
 	private $victorySpaces;
+	private $forks;
 	
 	//This is used to track where we expect to be able to win next turn
 	private $winMove;
 	
-	function DoozyBot($first, $playbook, $playbook2)	{
+	function DoozyBot($first, $playbook, $playbook2, $forks)	{
 		//The playbook contains, for each given space on the board, the other two spaces 
 		//that need to match to win the game.
 		$this->victoryPairs = $playbook;
 		$this->victorySpaces = $playbook2;
+		$this->forks = $forks;
 		$this->reset($first);
 	}
 	
@@ -92,7 +94,7 @@ class DoozyBot	{
 		$tempArr = $this->myMoves;
 		array_push($tempArr, $vSpace);
 		$keys = $this->buildKeys($tempArr);
-		$newVSpace = $this->getVictorySpace($keys, $this->oppMoves);
+		$newVSpace = $this->getVictorySpace($keys, $this->oppMoves, true);
 		if ($newVSpace !== -1)	{
 			$this->winMove = $newVSpace;
 		}
@@ -104,10 +106,10 @@ class DoozyBot	{
 	 * @param string $key
 	 * @return number
 	 */
-	private function getVictorySpace($keys, $arr = array())	{
+	private function getVictorySpace($keys, $arr = array(), $checkForForks = false)	{
 		foreach ($keys as $key)	{
 			if (isset($this->victorySpaces[$key]))	{
-				if (!in_array($this->victorySpaces[$key], $arr))	{
+				if (!in_array($this->victorySpaces[$key], $arr) && !($checkForForks && $this->checkForFork($key)))	{
 					return $this->victorySpaces[$key];
 				}
 			}
@@ -152,6 +154,19 @@ class DoozyBot	{
 		
 		//If we just can't setup a win, return -1 and do a random move;
 		return -1;
+	}
+	
+	/**
+	 * This makes sure the AI doesn't try to setup a fork
+	 * When the human player does this it's essentially a win state, so the AI has to block
+	 * However, the AI does not look ahead far enough to make use of the fork and loses
+	 * when it tries to set it up.
+	 */
+	private function checkForFork($key)	{
+		if (isset($this->forks[$key]))	{
+			return true;
+		}
+		return false;
 	}
 	
 	/**

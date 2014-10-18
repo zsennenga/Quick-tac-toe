@@ -73,18 +73,18 @@ class GameState	{
 			return;
 		}
 		
-		//Another quick check. Draw if the board is full.
-		if ($this->turnNumber === 9)	{
-			$this->winner = -1;
-			return;
-		}
-		
 		//victoryPairs contains, for each given space on the board, the set of pairs of spaces 
 		//that need to match to win the game.
 		$victoryPairs = $this->victoryPairs[$lastMove];
 		foreach($victoryPairs as $pair)	{
 			if($this->checkWin($pair))
 				return;
+		}
+		
+		//Another quick check. Draw if the board is full.
+		if ($this->turnNumber === 9)	{
+			$this->winner = -1;
+			return;
 		}
 		
 		return;

@@ -11,10 +11,12 @@ ini_set('max_execution_time', 0);
 
 $playbook = json_decode(file_get_contents("victoryPairs.json"), true);
 $playbook2 = json_decode(file_get_contents("victorySpaces.json"), true);
+$forks = json_decode(file_get_contents("forks.json"), true);
 //Initialize Classes
 $gameState = new GameState($playbook);
 $first = $gameState->getNextPlayer() === BOT_ID;
-$bot = new DoozyBot($first, $playbook, $playbook2);
+$bot = new DoozyBot($first, $playbook, $playbook2, $forks);
+
 
 $thisGame = array();
 $games = 0;
